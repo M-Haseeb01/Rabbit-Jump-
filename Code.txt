@@ -1,0 +1,3206 @@
+;Rabbit -Jump Game with animation
+
+[org 0x0100]
+jmp start
+X dw 2
+Y dw 264
+oldisr: dd 0											; space for saving old isr
+key db 0
+tickcount: dw 0
+key1 db 0
+Score1 dw 0
+down_town dw 0
+message111: db 'Do you want to exit ?', 0 ; null terminated string  
+length111: dw 23
+message11: db 'NO', 0 ; null terminated string 
+message22: db 'YES', 0 ; null terminated string 
+Random db 0;
+Random1 db 0;
+flag dw 0
+flag_S dw 3
+message: db 'Loading...'                ; string to be printed
+length: dw 10 
+message2: db 'Press enter to continue to the game'              ; string to be printed
+length2: dw 35   
+P dw 0
+xyz times 2000 dw 0
+buffer: times 8000 dw 0 ; buffer to save video memory
+clrscr:
+push ax
+push es
+push si
+mov ax, 0xb800
+mov es, ax
+mov si, 0
+mov ax, 0x0720
+mov cx, 8000
+cld
+rep stosw
+pop si
+pop es
+pop ax
+ret
+
+
+Birds:	   
+
+mov ax, 0xb800 					
+mov es, ax 				
+mov di, 322		
+mov si, 326
+mov cx, [X]
+bird: 	
+mov word [es:di], 0x075e
+add di, [X]						   
+cmp di, si                  		
+jne bird 
+
+add di, 274
+add si, 278
+loop bird
+
+mov di, 348
+mov si, 352
+mov cx, [X]
+birds: 	
+mov word [es:di], 0x075e
+add di, [X]						   
+cmp di, si                  		
+jne birds 
+
+add di, 274
+add si, 278
+loop birds
+
+ret 
+GAME:
+
+push es
+push di
+push ax
+push bx
+push cx
+push dx
+push si
+
+
+playit:
+
+mov di,4930             ;startiing point of car2
+push di;
+call Car2;
+
+mov si,4506             ;strting point of car1
+push si;
+mov cx,4                ;height of car
+push cx;
+call Car1;
+
+
+
+call Birds
+call R_Rabbit
+call saveScreen
+
+mov si,10032;
+mov cx,132;
+footpath2:
+mov word [es:si],0x022A;
+add si,2;
+dec cx;
+jnz footpath2
+
+
+
+
+
+
+
+
+
+
+
+
+
+TT:
+
+
+mov cx,5;
+push cx;
+call Rand
+
+mov al,[Random];
+
+
+cmp al,'1';
+je C1;
+cmp al,'2'
+je C2;
+cmp al,'3';
+je C3;
+
+
+C1:
+mov dx,8514+6;
+
+mov bx,0x44;
+mov si,6600+264*5+100;
+push si;
+push bx;
+call Carrot
+jmp CN;
+C2:
+
+mov dx,8514+10;
+
+mov bx,0x44;
+mov si,6600+264*5+100+4;
+push si;
+push bx;
+call Carrot
+jmp CN;
+ 
+C3:
+
+mov dx,8514-20;
+mov bx,0x44;
+mov si,6600+264*5+100+10;
+push si;
+push bx;
+call Carrot
+jmp CN;
+ 
+ 
+ 
+ 
+ 
+ CN:
+ cmp al, '5'        ; Compare AL with the ASCII value of '5'
+ je slide1;
+ 
+  cmp al, '4'  
+  je slide3;  
+  jl slide2
+
+
+slide3:
+
+mov word [down_town],0x3333
+call min_clear
+call Animation
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+mov dx,8514+16
+mov bx,0x0C;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL   ; Jump to key_pressed if a key is pressed
+call Delay
+call Animation
+cmp word[flag_S],0;
+;je nextslide3;
+jmp slide3;
+
+slide2:
+
+
+mov word [down_town],0x3332
+
+call min_clear
+
+call Animation
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+call Delay
+mov bx,0x00;
+push cx;
+push bx;
+call SLIDES;
+
+add dx,4
+mov bx,0x02;
+
+push dx;
+push bx;
+call SLIDES;
+
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call ScrollRight
+call ScrollLeft
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+add dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Animation
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call ScrollRight
+call ScrollLeft
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Animation
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+add dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+ mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Animation
+ mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+
+
+
+call Delay
+add dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Animation
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed---
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+call Animation
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+call Delay
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Animation
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+
+
+
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+sub dx,4
+mov bx,0x02;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+jmp slide2;
+
+slide1:
+mov word [down_town],0x3331
+call min_clear
+mov si,6600+264*5+80-20-50;
+mov cx,132;
+footpath2C10:
+mov word [es:si],0x002A;
+add si,2;
+dec cx;
+jnz footpath2C10
+mov bx,0x44;
+mov si,6600+264*5+100-12;
+push si;
+push bx;
+call Carrot
+
+
+
+
+call Animation
+mov dx,8514;
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+
+add dx,4
+mov bx,0x05;
+
+push dx;
+push bx;
+call SLIDES;
+
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call ScrollRight
+call ScrollLeft
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+add dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Animation
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call ScrollRight
+call ScrollLeft
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Animation
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+add dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+add dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Animation
+ mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+
+
+
+call Delay
+add dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Animation
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed---
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+call Animation
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+call Delay
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+call Animation
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+
+
+
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+
+
+sub dx,4
+mov bx,0x05;
+push dx;
+push bx;
+call SLIDES;
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz LLL    ; Jump to key_pressed if a key is pressed
+
+call Delay
+mov bx,0x00;
+push dx;
+push bx;
+call SLIDES;
+jmp slide1;
+
+
+
+
+;---------------------------
+
+LLL:
+
+
+
+
+cmp dx,8560
+jg EXIT;
+
+mov ah, 01h
+int 16h
+jz exitthispart
+
+mov ah, 00h
+int 16h;Press Space 
+
+cmp dx,10032-264*6+60
+jl EXIT;
+mov di,dx;
+
+call Delay
+
+add word [cs:Score1],10
+push word [cs:Score1]
+
+call printnum ; print tick count
+
+
+
+
+
+;Carrot
+
+
+mov si,6600+264*5+80-20-50;
+mov cx,132;
+footpath2C:
+mov word [es:si],0x002A;
+add si,2;
+dec cx;
+jnz footpath2C
+
+
+ 
+
+mov ax,6600+264*5+100;
+mov si,ax;
+sub si,2;
+mov word[es:si],0x002d
+call Delay
+;-----Carrot
+mov si,6600+264*13; 
+mov cx,132;
+footpath32:
+mov word [es:si],0x002A;
+add si,2;
+dec cx;
+jnz footpath32
+
+
+
+mov si,6600+264*13;
+mov cx,132;
+footpath3:
+mov word [es:si],0x002A;
+add si,2;
+dec cx;
+jnz footpath3
+
+
+
+
+
+mov di,dx;
+
+call Delay
+mov bx,00;
+push di
+push bx;
+call SLIDES;
+
+mov bx,02;COLOR TO DISAPPEAR
+add di,264
+push di;
+push bx;
+call SLIDES
+;
+call Animation
+call Delay
+mov bx,00;
+push di
+push bx;
+call SLIDES;
+call restoreScreen
+mov bx,02;COLOR TO DISAPPEAR
+add di,264
+push di;
+push bx;
+call SLIDES
+call restoreScreen
+;
+call Animation
+call Delay
+mov bx,00;
+push di
+push bx;
+call SLIDES;
+
+mov bx,02;COLOR TO DISAPPEAR
+add di,264
+push di;
+push bx;
+call SLIDES
+;
+
+call restoreScreen
+
+
+call Delay
+mov bx,00;
+push di
+push bx;
+call SLIDES;
+
+mov bx,02;COLOR TO DISAPPEAR
+add di,264
+push di;
+push bx;
+call SLIDES
+;
+call Animation
+
+mov bx,00;
+push di
+push bx;
+call SLIDES;
+call restoreScreen
+mov bx,02;COLOR TO DISAPPEAR
+add di,264
+push di;
+push bx;
+call SLIDES
+;
+call Delay
+mov bx,00;
+push di
+push bx;
+call SLIDES;
+
+call Rand;
+mov al,[Random];
+cmp al,'3';
+je nextslide3T
+cmp al,'4';
+je nextslide1      ; Jump to nextslide1 if the values are equal
+
+; Load the value stored at the memory location Random into AL
+cmp word[down_town], 0x3333        ; Compare AL with the ASCII value of '5'
+je  nextslide1      ; Jump to nextslide1 if the values are equal
+cmp  word [down_town], 0x3331        ; Compare AL with the ASCII value of '5'
+
+
+
+
+
+
+
+nextslide0:
+call min_clear
+mov bx, 0x02        ; COLOR TO DISAPPEAR
+add di, 264
+push di
+push bx
+call SLIDES
+
+jmp end_slides      ; Jump to end_slides to avoid executing nextslide1 code
+
+nextslide1:
+call min_clear
+call restoreScreen
+mov bx, 0x05        ; COLOR TO DISAPPEAR
+add di, 264
+push di
+push bx
+call SLIDES
+jmp slide1
+nextslide3T:
+mov word [cs:tickcount], 0
+add di,264
+nextslide3:
+
+mov bx, 0x01        ; COLOR TO DISAPPEAR
+
+push di
+push bx
+
+call SLIDES
+call Delay
+call Animation
+call restoreScreen
+mov ah, 01h        ; Set AH to 01h to check for a keypress
+int 16h            ; Call interrupt 16h (BIOS keyboard services)
+jnz slide3      ; Jump to key_pressed if a key is pressed
+cmp word [flag_S],0;
+je GO
+jmp slide3; 
+end_slides:
+call restoreScreen
+call Animation
+
+mov ax, dx
+mov bx, 00       ; COLOR TO DISAPPEAR
+push ax
+push bx
+call SLIDES
+
+call restoreScreen
+; Continue with the rest of your code
+
+
+
+exitthispart:
+
+call Animation
+;--------------
+
+update:
+
+jmp TT;
+
+update2:
+
+jmp TT;
+EXIT:
+
+call GO;
+
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop di
+pop es
+
+ret;
+
+Printstring:
+	
+push bp
+mov bp, sp
+push es
+push ax
+push cx
+push si
+push di
+
+mov ax, 0xb800
+mov es, ax				; point es to video base
+mov si, 0
+
+
+mov al, 80				; load al with columns per row
+mul byte [bp+12]		; 80 x r
+add ax, [bp+10]			; word number (80xr) + c
+shl ax, 1				; byte no (((80xr) + c)x2)
+
+mov di, ax				; point di to required location
+mov si, [bp+6]			; point si to string
+mov cx, [bp+4]			; load length of string in cx
+mov ah, [bp+8]			; load attribute in ah
+
+nextchar:	
+mov al, [si]			; load next char of string
+mov [es:di], ax			; show this char on screen
+add di, 2				; move to next screen location
+add si, 1				; move to next char in string
+
+loop nextchar			; repeat the operation cx times
+
+pop di
+pop si
+pop cx
+pop ax
+pop es
+pop bp
+
+ret 10
+
+
+Building:
+push bp
+mov bp, sp
+push ax
+push es
+
+;;;;;;;;;;;COLORING Code;;;;;;;;;;
+mov ax, 3448
+mov bx, [bp + 6] 
+sub ax, bx
+mov cx, [X]
+Calculatebuildinglength:
+inc cx
+sub ax, [Y]
+cmp ax, 0
+jg Calculatebuildinglength
+
+;Above loop finds the height of the Building
+
+color_loopC2:
+    mov ax, 0xb800
+    mov es, ax
+
+    mov di, si
+    mov dx, 17; 
+	mov bh, [bp + 10]
+	mov bl, 0x20
+	print_colorB1:
+        mov word [es:di], bx
+		
+        add di, [X]
+		dec dx
+		jnz print_colorB1
+		
+	
+    add si, [Y] 
+    dec cx
+    jnz color_loopC2
+
+;;;;;;;;;;;WINDOW PRINTING;;;;;;;;;;
+mov bx, 2
+mov si, 4              ; Print window at some distance 
+loop1:
+add si, [bp + 6]
+mov cx, [bp + 8]       ;no. of windows
+
+window_loop:
+mov ax, 0xb800
+mov es, ax
+
+mov di, si
+mov dx, 5              ; Number of characters to print in each window
+print_window:
+mov word [es:di], 0x772D
+add di, [X]
+dec dx
+jnz print_window
+	
+add si, 264*2          ; Move to the next window horizontally
+dec cx
+jnz window_loop
+
+mov si, 22
+dec bx
+jnz loop1
+	
+mov ax, 0xb800
+mov es, ax
+mov si, [bp + 6]
+mov di, [bp + 4]
+
+Verticalwall:
+mov word [es:si], 0x077c
+mov word [es: di], 0x077c
+add si, [Y]
+add di, [Y]
+cmp si, 3712
+jle Verticalwall
+mov si, [bp + 6]
+mov cx, [bp + 4]
+sub si, [Y]
+sub cx, [Y]
+
+
+
+
+
+Roof:
+mov word [es:si], 0x072D      ;Roof of the Building
+add si, [X]
+cmp si, cx
+jle Roof
+
+pop es
+pop ax
+pop bp
+ret 8
+
+Footpath:
+push bp
+mov bp, sp
+push ax
+push es
+
+mov ax, 0xb800
+mov es, ax
+mov si, [bp + 6]
+mov cx, [bp + 4]
+Length:
+mov word [es:si], 0x772D
+add si, [X]
+cmp si, cx
+jle Length
+
+pop es
+pop ax
+pop bp
+ret 4
+
+
+min_clear:
+pusha
+mov si,0;
+mov cx,264*2;
+footpath2C1:
+mov word [es:si],0x002A;
+add si,2;
+dec cx;
+jnz footpath2C1
+popa;
+ret
+
+
+Light:
+
+push bp
+mov bp, sp
+push ax
+push es
+
+mov ax, 0xb800
+mov es, ax
+mov si, [bp + 6]
+stand:
+mov word [es:si], 0x077c
+add si, [Y]
+cmp si, 3712
+jle stand
+
+mov di, 2
+add di ,[bp + 6]
+mov word [es:di], 0x072D
+
+mov di, 4
+add di, [bp + 6]
+mov cx, 4
+bulb:
+mov word [es:di], 0xff2D
+add di, [X]
+loop bulb
+
+pop es
+pop ax
+pop bp
+ret 4
+
+Road:
+push bp
+mov bp, sp
+push ax
+push es
+
+mov ax, 0xb800
+mov es, ax
+mov si, [bp + 4]  ; 4224
+mov bx, [bp + 4]
+add bx, [Y]       ; 4488
+Firstpath:
+mov word [es:si], 0x072D
+add si, [X]
+cmp si, bx
+jne Firstpath
+
+mov cx, 6
+addloop:          ; Road width
+add bx, [Y]       ; 5544
+loop addloop
+
+mov dx, bx
+mov si, bx
+mov ax, bx
+add bx, [Y]   ;5808
+Secondpath:
+mov word [es:si], 0x072D
+add si, [X]
+cmp si, bx
+jne Secondpath
+
+
+mov cx, 4
+addloop1:   
+sub bx, [Y]       
+loop addloop1
+
+mov di, bx   ;3696
+add bx,16;
+mov si, bx
+add bx,[Y]
+Stripes:
+mov word [es:di], 0x772D                 ; Printing Stripes
+add di, [X] 
+cmp di, si   ;3702
+jne Stripes
+add di, 10
+add si, 30
+cmp si, bx
+jle Stripes
+
+
+pop es
+pop ax
+pop bp
+ret 2
+
+
+GO:
+pusha;
+GO1:
+
+
+mov cx,5;
+loopSound:
+; Game Over Sound
+
+; Load the counter 2 value for a lower frequency
+mov al, 0B6h
+out 43h, al
+
+mov ax, 1FB4h ; Adjust frequency for a lower tone
+out 42h, al
+mov al, ah
+out 42h, al
+
+; Turn the speaker on
+in al, 61h
+mov ah, al
+or al, 3h
+out 61h, al
+call Delay
+mov al, ah
+out 61h, al
+
+call Delay
+
+; Load the counter 2 value for a higher frequency
+mov ax, 152Fh
+out 42h, al
+mov al, ah
+out 42h, al
+
+; Turn the speaker on
+in al, 61h
+mov ah, al
+or al, 3h
+out 61h, al
+call Delay
+mov al, ah
+out 61h, al
+
+call Delay
+
+; Load the counter 2 value for another frequency
+mov ax, 0A97h
+out 42h, al
+mov al, ah
+out 42h, al
+
+; Turn the speaker on
+in al, 61h
+mov ah, al
+or al, 3h
+out 61h, al
+call Delay
+mov al, ah
+out 61h, al
+
+
+mov si,6600;Strting pos to clear screen
+mov cx,1900;
+GAMEOVER:
+mov word [es:si],0x002d;
+add si,2;
+dec cx;
+jnz GAMEOVER
+;call clrscr1;
+
+mov si, 6600+100 +264*3; starting pos to display text  
+mov word[es:si], 0x8447
+add si,2;
+mov word[es:si], 0x8241
+add si,2;
+mov word[es:si], 0x814d
+add si,2;
+mov word[es:si], 0x8545
+add si,264;
+mov word[es:si], 0x844f
+add si,2;
+mov word[es:si], 0x8256
+add si,2;
+mov word[es:si], 0x8145
+add si,2;
+mov word[es:si], 0x8552
+call Delay
+
+
+call Delay
+jnz  loopSound
+
+
+
+
+
+
+
+
+
+
+mov si, 6600+100 +264*3; starting pos to display text  
+mov word[es:si], 0x8447
+add si,2;
+mov word[es:si], 0x8241
+add si,2;
+mov word[es:si], 0x814d
+add si,2;
+mov word[es:si], 0x8545
+add si,264;
+mov word[es:si], 0x844f
+add si,2;
+mov word[es:si], 0x8256
+add si,2;
+mov word[es:si], 0x8145
+add si,2;
+mov word[es:si], 0x8552
+call Delay
+jmp GO1
+popa
+ret;
+
+
+
+
+
+Shop:
+
+push bp
+mov bp, sp
+push ax
+push es
+
+mov ax, 0xb800
+mov es, ax
+mov si, [bp + 6]
+mov di, [bp + 4]
+
+Wall01:
+mov word [es:si], 0x477c
+add si, [Y]
+cmp si, di
+jle Wall01
+
+mov si, [bp + 6]
+mov di, [bp + 4]
+add si, 30
+add di, 30
+Wall02:
+mov word [es:si], 0x477c
+add si, [Y]
+cmp si, di
+jle Wall02
+
+mov si, [bp + 6]    ; Roof of the Shop
+mov di, si
+sub si, [Y]
+sub si, 2
+sub di, [Y]
+add di, 10
+Wall03:
+mov word [es:si], 0x472D
+add si, [X]
+cmp si, di
+jle Wall03
+
+;---------SHOP Printing------
+mov si, [bp + 6]
+mov di, si
+sub si, 252
+mov word [es:si], 0x0753
+add si, [X]
+mov word [es:si], 0x0748
+add si, [X]
+mov word [es:si], 0x074F
+add si, [X]
+mov word [es:si], 0x0750
+add si, [X]
+;------,-----------------------
+ 
+sub di, 232
+Wall04:
+mov word [es:si], 0x472D
+add si, [X]
+cmp si, di
+jle Wall04
+
+mov si, [bp + 6]    
+add si, 10
+mov di, [bp + 4]
+sub di, 210
+Wall05:
+mov word [es:si], 0x077c
+add si, [Y]
+cmp si, di
+jle Wall05
+
+mov si, [bp + 6]    
+add si, 20
+mov di, [bp + 4]
+sub di, 210
+Wall06:
+mov word [es:si], 0x077c
+add si, [Y]
+cmp si, di
+jle Wall06
+
+mov si, [bp + 6]
+mov di, si
+add si, 266
+add di, 292
+Shelf01:
+mov word [es:si], 0x072D
+add si, [X]
+cmp si, di
+jle Shelf01
+
+mov si, [bp + 6]
+mov di, si
+add si, 264*3
+add si, 2
+add di, 264*3
+add di, 28
+Shelf02:
+mov word [es:si], 0x072D
+add si, [X]
+cmp si, di
+jle Shelf02
+
+mov cx, 3
+mov si, [bp + 6]    ; 2564
+mov di, si  
+add si, 4    ; 2568
+add di, 6    ; 2570
+FirstShelfFruit:
+l1:
+mov word [es:si], 0x072A
+add si, [X]
+cmp si, di
+jle l1
+
+add si, 6
+add di, 10
+loop FirstShelfFruit
+
+mov cx, 3
+mov si, [bp + 6]    ; 2564 
+add si, 532    ; 3096
+mov di, si 
+add di, 2    ; 3098
+SecondShelfFruit:
+l2:
+mov word [es:si], 0x072B
+add si, [X]
+cmp si, di
+jle l2
+
+add si, 6
+add di, 10
+loop SecondShelfFruit
+
+mov cx, 3
+mov si, [bp + 4]    ; 3852
+sub si, 228    ; 3624
+mov di, si 
+add di, 2    ; 3626
+ThirdShelfFruit:
+l3:
+mov word [es:si], 0x0721
+add si, [X]
+cmp si, di
+jle l3
+
+add si, 6
+add di, 10
+loop ThirdShelfFruit
+
+pop es
+pop ax
+pop bp
+ret 4
+
+Car1:
+
+push bp
+mov bp, sp
+push ax
+push es
+
+mov si,[bp+6];4506
+mov bx,si;
+mov cx,[bp+4];
+window_loopC1:
+    mov ax, 0xb800
+    mov es, ax
+
+    mov di, si
+    mov dx, 18; 
+	print_windowC:
+    mov word [es:di], 0x6720;7820
+    add di, [X]
+	dec dx
+	jnz print_windowC
+		
+	
+    add si, [Y] 
+    dec cx
+    jnz window_loopC1
+	
+	
+;;;;;;Car1 front
+add bx,38;
+
+mov si,bx;
+mov di,bx;
+sub di,6;
+add di,264-264;
+add di,4;
+mov word [es:di], 0x0f3a
+add di,264;
+mov word [es:di], 0x0f3a
+add di,264;
+mov word [es:di], 0x0f3a
+add di,264;
+mov word [es:di], 0x0f3a
+add bx,14
+C1_front00:
+mov word [es:si], 0xbb20
+add si,[X]
+cmp si, 4558
+jne C1_front00;
+
+add bx,264;
+sub bx,14;
+mov si,bx;
+add bx,14
+C1_front:
+mov word [es:si], 0xbb20
+add si,[X]
+cmp si, bx
+jne C1_front;
+
+add bx,264; 
+sub bx,14;
+mov si,bx;
+add bx,20
+C1_front2:
+mov word [es:si], 0xbb20
+add si,[X]
+cmp si, bx
+jne C1_front2;
+add bx,264;
+sub bx,20;
+mov si,bx;
+add bx,20
+C1_front3:
+mov word [es:si], 0xbb20
+add si,[X]
+cmp si, bx
+jne C1_front3;
+;;;;;;;;;;;;;;;
+add bx,[Y];
+sub bx,2;
+mov di, bx
+mov word [es:di], 0x0740
+sub di,56
+mov word [es:di], 0x0740
+add di, 34
+mov word [es:di], 0x0740
+
+
+pop es
+pop ax
+pop bp
+ret 4
+
+
+Car2:
+push bp
+mov bp, sp
+push ax
+push es
+
+mov ax, 0xb800
+mov es, ax
+mov bx,[bp+4];
+mov di,bx
+add bx,16
+front_C2:
+mov word [es:di], 0x7120
+add di, 2
+cmp di, bx
+jne front_C2
+
+add bx,[Y];
+sub bx,20;
+mov di,bx;
+add bx,26
+StripesC21:
+mov word [es:di], 0x4420
+add di, 2
+cmp di, bx
+jne StripesC21
+add di,[Y]
+sub di,26
+mov word [es:di], 0x0740
+add di,24
+mov word [es:di], 0x0740
+
+pop es
+pop ax
+pop bp
+ret 2
+
+ScrollRight:
+
+push es
+push di
+push ax
+push bx
+push cx
+push dx
+push si
+
+mov ax, 0xb800
+mov es, ax
+mov ds, ax 
+	
+Road_move:		
+
+mov ax , 5806
+mov dx, ax              ;save the initial position of mountains for later use
+mov ch, 6               ;total number of rows of  mountains=27  to be moved		;outer counter
+mov si, 4               ;number of movements
+mov di, dx
+
+Repeatprocess:	
+mov bx, [es:di]          ;store first element so that it'd be pasted at the last place	;i.e., movement from right to left
+sub di, 2
+mov cl, 131              ;total number of columns in a row to be copied	;inner counter
+
+againcopy:		
+mov ax, [es:di]
+add di, 2
+mov [es:di], ax
+sub di, 4
+dec cl
+jnz againcopy
+
+add di, 2
+mov [es:di], bx          ;paste first element at last position
+sub di, 2
+
+next_iteration:		
+dec ch
+jnz Repeatprocess
+
+Asssignvalues:	
+mov di, dx               ;restore initial position
+mov ch, 6                ;re-initialize total number of rows of mountains
+dec si
+jnz Repeatprocess
+
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop di
+pop es
+ret
+		
+
+
+
+ScrollLeftG:
+push bp;
+mov bp,sp;
+push es
+push di
+push ax
+push bx
+push cx
+push dx
+push si
+
+mov ax, 0xb800
+mov es, ax
+mov ds, ax 
+	
+Buliding_moveG:	
+call Delay	
+mov ax , [bp+4]
+sub ax,264
+mov dx, ax              ;save the initial position of mountains for later use
+mov ch, 1           ;total number of rows of  mountains=27  to be moved		;outer counter
+mov si, 5           ;number of movements
+mov di, dx
+
+
+Repeat_processG:	
+mov bx, [es:di]           ;store first element so that it'd be pasted at the last place	;i.e., movement from right to left
+add di, 2
+mov cl, 131              ;total number of columns in a row to be copied	;inner counter
+
+CopyG:		
+mov ax, [es:di]
+sub di, 2
+mov [es:di], ax
+add di, 4
+dec cl
+jnz CopyG
+
+sub di, 2
+mov [es:di], bx           ;paste first element at last position
+add di, 2
+
+Next_iterationG:		
+dec ch
+jnz Repeat_processG
+
+Asssignvalues1G:	
+mov di, dx                ;restore initial position
+mov ch, 1              ;re-initialize total number of rows of mountains
+dec si
+jnz Repeat_processG
+	
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop di
+pop es
+pop bp
+ret 2
+
+
+
+
+
+
+
+
+ScrollLeft:
+push es
+push di
+push ax
+push bx
+push cx
+push dx
+push si
+
+mov ax, 0xb800
+mov es, ax
+mov ds, ax 
+	
+Buliding_move:		
+mov ax, 132		
+mov ax , 0 
+mov dx, ax                ;save the initial position of mountains for later use
+mov ch, 15                ;total number of rows of  mountains=27  to be moved		;outer counter
+mov si, 4                 ;number of movements	
+mov di, dx
+
+Repeat_process:	
+mov bx, [es:di]           ;store first element so that it'd be pasted at the last place	;i.e., movement from right to left
+add di, 2
+mov cl, 131               ;total number of columns in a row to be copied	;inner counter
+
+Copy:		
+mov ax, [es:di]
+sub di, 2
+mov [es:di], ax
+add di, 4
+dec cl
+jnz Copy
+
+sub di, 2
+mov [es:di], bx           ;paste first element at last position
+add di, 2
+
+Next_iteration:		
+dec ch
+jnz Repeat_process
+
+Asssignvalues1:	
+mov di, dx                ;restore initial position
+mov ch, 15                ;re-initialize total number of rows of mountains
+dec si
+jnz Repeat_process
+	
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop di
+pop es
+ret
+
+
+Delay:
+push cx
+mov cx, 10        ; change the values to increase delay time
+delay_loop1:
+push cx
+mov cx, 0x8888
+delay_loop2:
+loop delay_loop2
+pop cx
+loop delay_loop1
+pop cx
+ret
+
+Third_part:
+push ax
+push es
+
+mov ax, 0xb800
+mov es, ax
+mov di, 6072
+mov si, 11352
+part:
+mov word[es: di], 0x2320
+add di, [X]
+cmp di, si
+jl part
+
+
+
+
+
+pop ax
+pop es
+ret
+
+
+Carrot:
+push bp;
+mov bp,sp;
+push es
+push di
+push ax
+push bx
+push cx
+push dx
+push si
+
+mov si,[bp+6]
+mov bh,[bp+4];
+
+
+mov cx,5;
+mov bl,0x2d;
+CarrotL:
+mov word [es:si],bx;
+add si,2;
+dec cx;
+jnz CarrotL
+mov si,[bp+6];
+sub si,2;
+mov word[es:si],0x222d
+
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop di
+pop es
+pop bp
+ret 2
+
+
+ScrollGame:
+push bp;
+mov bp,sp;
+push es
+push di
+push ax
+push bx
+push cx
+push dx
+push si
+
+mov ax, 0xb800
+mov es, ax
+mov ds, ax 
+	
+g_move:		
+call Delay
+mov ax , [bp+4];
+mov dx, ax              ;save the initial position of mountains for later use
+mov ch, 1           ;total number of rows of  mountains=27  to be moved		;outer counter
+mov si, 5               ;number of movements
+mov di, dx
+
+Repeatprocess2:	
+mov bx, [es:di]          ;store first element so that it'd be pasted at the last place	;i.e., movement from right to left
+sub di, 2
+mov cl, 131          ;fixing to rotate slide till certain axis
+
+againcopy2:		
+mov ax, [es:di]
+add di, 2
+mov [es:di], ax
+sub di, 4
+dec cl
+jnz againcopy2
+ 
+add di, 2
+mov [es:di], bx          ;paste first element at last position
+sub di, 2
+
+next_iteration2:		
+dec ch
+jnz Repeatprocess2
+
+Asssignvalues2:	
+mov di, dx               ;restore initial position
+mov ch, 1           ;re-initialize total number of rows of mountains
+dec si
+jnz Repeatprocess2
+
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop di
+pop es
+pop bp
+ret 2
+	
+
+Loadingscreen:
+push es
+push di
+push ax
+push bx
+push cx
+push dx
+push si
+
+mov ax, 0xb800
+mov es, ax
+mov si, 4840      ;1962
+mov di, 4892      ;2014
+screen:
+mov word[es:si], 0x772D
+call Delay
+add si, 2
+cmp si, di
+jl screen
+
+pop si
+pop dx
+pop cx
+pop bx
+pop ax
+pop di
+pop es
+ret
+
+
+SLIDES:
+push bp
+mov bp,sp
+push ax
+push es
+push si
+
+
+mov bh,[bp+4];
+mov bl,0xA
+mov si,[bp+6];
+mov cx,18;
+L11:
+mov word[es:si],bx;
+add si,2
+dec cx;
+jnz L11;
+
+pop si
+pop es
+pop ax
+pop bp
+ret 4
+
+Gameover:
+push ax
+push es
+push si
+
+mov ax, 0xb800
+mov es, ax
+mov si, 0
+mov di, 11486
+grayslide:
+mov word[es:si], 0xff20
+add si, [X]
+cmp si, di
+jle grayslide
+
+mov si, 3246      ;1962
+mov di, 6022      ;2014
+scr:
+mov word[es:si], 0x002D
+call Delay
+add si, [Y]
+cmp si, di
+jl scr
+
+mov si, 3248      ;1962
+mov di, 3262      ;2014
+over:
+mov word[es:si], 0x007C
+add si, [X]
+cmp si, di
+jl over
+
+mov si, 3262     ;1962
+mov di, 4582     ;2014
+over1:
+mov word[es:si], 0x002D
+add si, [Y]
+cmp si, di
+jl over1
+
+mov si, 4570     ;1962
+mov di, 4584     ;2014
+over2:
+mov word[es:si], 0x007C
+add si, [X]
+cmp si, di
+jl over2
+
+mov si, 4836     ;1962
+mov di, 6164    ;2014
+over3:
+mov word[es:si], 0x007C
+add si, 266
+cmp si, di
+jl over3
+;-----------------------------------------------G
+
+mov si, 5918     ;1962
+mov di, 5922    ;2014
+overA:
+mov word[es:si], 0x007C
+add si, [X]
+cmp si, di
+jl overA
+
+mov si, 3316     ;2776
+mov di, 6076    ;2014
+overa:
+mov word[es:si], 0x007C
+add si, [Y]
+cmp si, di
+jl overa
+
+mov si, 3298   ;2776
+mov di, 3334    ;2014
+overc:
+mov word[es:si], 0x002D
+add si, [X]
+cmp si, di
+jl overc
+
+mov si, 5944     ;1962
+mov di, 5958    ;2014
+overz:
+mov word[es:si], 0x007C
+add si, [X]
+cmp si, di
+jl overz
+
+mov si, 5416     ;1962
+mov di, 5958    ;2014
+overs:
+mov word[es:si], 0x002D
+add si, [Y]
+cmp si, di
+jl overs
+
+
+pop si
+pop es
+pop ax
+ret
+
+Animation:
+pusha 
+mov cx,2;
+AnimationLoop:
+call ScrollLeft
+call ScrollRight
+loop AnimationLoop;
+popa;
+ret;
+
+
+
+
+R_Rabbit:
+pusha
+
+mov si,8008+264+264++264+264+8
+
+mov cx,4
+color_rabbit:
+    
+
+    mov di, si
+    mov dx, 8; 
+	mov bx,0xff20
+	print_Rabbit:
+        mov word [es:di], bx
+		
+        add di, [X]
+		dec dx
+		jnz print_Rabbit
+		
+	
+    add si, [Y] 
+    dec cx
+    jnz color_rabbit
+
+
+
+
+
+mov si,8008+264+264++264+264+8
+add si,260
+mov cx,2
+color_rabbit1:
+    mov ax, 0xb800
+    mov es, ax
+
+    mov di, si
+    mov dx, 2; 
+	mov bx,0x4420
+	print_Rabbit1:
+        mov word [es:di], bx
+		
+        add di, [X]
+		dec dx
+		jnz print_Rabbit1
+		
+	
+    add si, [Y] 
+    dec cx
+    jnz color_rabbit1
+
+
+
+mov si,8008+264+264++264+264+8
+
+add si,268
+mov word [es:si], 0x7040
+add si, 6
+mov word [es:si], 0x7040
+add si, 262
+mov word [es:si], 0x702d
+
+
+
+
+popa
+ret 
+
+
+
+saveScreen:
+
+pusha
+    mov ax , 0xb800
+mov es , ax
+mov bx , 0
+mov cx , 500
+mov di,8008+264+264++264+264+8
+loop_:
+
+MOV  dx , [es:di]
+mov [xyz + bx] , dx
+add bx , 2
+add di , 2
+loop loop_
+
+
+popa
+ret
+
+
+restoreScreen:
+
+pusha
+ 
+mov bx , 0
+mov cx , 500
+mov ax , 0xb800
+mov es , ax
+mov di,8008+264+264++264+264+8
+loop2_:
+
+mov ax , [cs:xyz + bx]
+MOV [es:di] , ax
+add bx , 2
+add di , 2
+loop loop2_
+
+
+popa
+ret
+
+
+IntroScreen:
+pusha
+mov ax, 46
+push ax				    ; push r position............[bp+12]
+mov ax, 56
+push ax				    ; push c position............[bp+10]
+mov ax, 0x8f			    ; blue on black attribute
+push ax				    ; push attribute............[bp+8]
+mov ax, message2
+push ax				    ; push address of message............[bp+6]
+push word [length2]	    ; push message length ....[bp+4]
+call Gameover
+call Printstring       ; call the printstr subroutine
+mov ah, 0               ; Set up to read a keypress.
+int 16h                 ; Call BIOS interrupt 16h (keyboard input).
+mov [key], al           ; Store the ASCII code of the keypress in 'key'.
+cmp byte [key], 13      ; Check if the key pressed is 'Enter' (ASCII value 83).
+call clrscr
+mov ax, 0xb800
+mov es, ax
+mov si, 0
+mov di, 11486
+clearscr:
+mov word[es:si], 0x0720
+add si, 2
+cmp si, di
+jle clearscr
+
+mov ax, 25
+push ax				    ; push r position............[bp+12]
+mov ax, 38
+push ax				    ; push c position............[bp+10]
+mov ax, 0x08			    ; blue on black attribute
+push ax				    ; push attribute............[bp+8]
+mov ax, message
+push ax				    ; push address of message............[bp+6]
+push word [length]	    ; push message length ....[bp+4]
+call Printstring       ; call the printstr subroutine
+call Loadingscreen      ; Loading at the start
+mov AH,0x00
+mov al, 0x54
+int 0x10
+call sound;
+call clrscr
+
+
+popa;
+ret;
+
+
+
+Print1:
+PUSHA
+mov si, 280 ; starting point
+mov di, 314 ; width of the Building
+mov bx, 6   ; No. of windows
+mov dx, 0x47
+push dx
+push bx
+push si
+push di
+call Building
+
+
+continue:
+mov si, 1376      ; starting point
+mov di, 1410      ; width of the Building
+mov bx, 4        ; No. of windows
+mov dx, 0x17
+push dx
+push bx
+push si
+push di
+call Building
+
+mov si, 492 ; starting point
+mov di, 526;1674 ; width of the Building
+mov bx, 6   ; No. of windows
+mov dx, 0x67
+push dx
+push bx
+push si
+push di
+call Building
+
+mov si, 1184 ; starting point
+mov di, 1218;1674 ; width of the Building
+mov bx, 5  ; No. of windows
+mov dx, 0x17
+push dx
+push bx
+push si
+push di
+call Building
+
+mov si,  3696 ; starting point of the Footpath
+mov di,  3957 ; Length of the Footpath = 262
+push si
+push di
+call Footpath
+
+mov si,6608+264
+mov word[es:si], 0x0f53
+add si,2;
+mov word[es:si], 0x0f43
+add si,2;
+mov word[es:si], 0x0f4f
+add si,2;
+mov word[es:si], 0x0f52
+add si,2;
+mov word[es:si], 0x0f45
+add si,2;
+mov word[es:si], 0x0f3A
+;---Score
+
+
+
+
+mov si,  2212 ; starting point of the Street Light
+mov di,  2216 ; starting point of the bulb
+push si
+push di
+call Light
+
+mov si, 4224-264 ; starting point of the Road
+push si
+call Road
+
+mov si,  2564 ; starting point of the Shop
+mov di,  3852 ; 
+push si
+push di
+call Shop
+POPA
+ret;
+;-----------
+Rand:
+    push bp
+    mov bp, sp
+    pushad
+
+    rdtsc
+    xor dx, dx
+    mov cx, 6       ; set range from 0 to 5 (exclusive)
+    div cx          ; here dx contains the remainder of the division - from 0 to 5
+    add dl, '0'     ; convert to ASCII value
+
+    mov [Random], dl
+
+    popad
+    pop bp
+    ret 2
+
+;----------------Timer interupt 
+
+printnum: 
+push bp
+mov bp, sp
+push es
+push ax
+push bx
+push cx
+push dx
+push di
+mov ax, 0xb800
+mov es, ax ; point es to video base
+mov ax, [bp+4] ; load number in ax
+mov bx, 10 ; use base 10 for division
+mov cx, 0 ; initialize count of digits
+nextdigit: 
+mov dx, 0 ; zero upper half of dividend
+div bx ; divide by 10
+add dl, 0x30 ; convert digit into ascii value
+push dx ; save ascii value on stack
+inc cx ; increment count of values
+cmp ax, 0 ; is the quotient zero
+jnz nextdigit ; if no divide it again
+mov di, 6600 +264+16+6; point di to 70th column
+nextpos: 
+pop dx ; remove a digit from the stack
+mov dh, 0x07 ; use normal attribute
+mov [es:di], dx ; print char on screen
+add di, 2 ; move to next screen location
+loop nextpos ; repeat for all digits on stack
+pop di
+pop dx
+pop cx
+pop bx
+pop ax 
+pop es
+pop bp
+ret 2
+
+
+
+timer:
+    push ax
+    
+    inc word [cs:tickcount]
+    
+    cmp word [cs:tickcount], 102
+    je reset_timer
+
+    cmp word [cs:tickcount],1 
+    je update_timer1
+
+    jmp skip_reset
+
+reset_timer:
+    ; Update flag_S to 0 and reset tickcount to 0 when tickcount reaches 600
+    mov word [flag_S], 0
+    mov word [cs:tickcount], 0
+    jmp skip_reset
+
+update_timer1:
+   
+    mov word [flag_S], 1
+
+skip_reset:
+    ; End of interrupt
+    mov al, 0x20
+    out 0x20, al
+
+    pop ax
+    iret
+
+
+
+
+
+
+
+;------------------------------ESC SCREEN WORK
+
+
+sound:	
+IN AL, 61h  ;Save state
+PUSH AX  
+
+; Game Over Sound (Modified)
+
+; Load the counter 2 value for a lower frequency
+mov al, 0FFh
+out 43h, al
+
+mov ax, 0FCFh ; Adjust frequency for a lower tone
+out 42h, al
+mov al, ah
+out 42h, al
+
+; Turn the speaker on
+in al, 61h
+mov ah, al
+or al, 3h
+out 61h, al
+call Delay
+mov al, ah
+out 61h, al
+
+call Delay
+
+; Load the counter 2 value for a higher frequency
+mov ax, 0E2Ch
+out 42h, al
+mov al, ah
+out 42h, al
+
+; Turn the speaker on
+in al, 61h
+mov ah, al
+or al, 3h
+out 61h, al
+call Delay
+mov al, ah
+out 61h, al
+
+call Delay
+
+; Load the counter 2 value for another frequency
+mov ax, 0D59h
+out 42h, al
+mov al, ah
+out 42h, al
+
+; Turn the speaker on
+in al, 61h
+mov ah, al
+or al, 3h
+out 61h, al
+call Delay
+mov al, ah
+out 61h, al
+
+
+
+   
+
+POP AX;restore Speaker state
+OUT 61h, AL
+ret
+
+
+clrscr1:
+push ax
+push es
+push si
+	mov ax, 0xb800 					; load video base in ax
+			mov es, ax 					; point es to video base
+			mov di, 0 					; point di to top left column
+									; es:di pointint to --> 0xB800:0000 (B8000)
+
+nextchar1: 	
+		mov word [es:di], 0x0720 				; clear next char on screen
+		add di, 2 						; move to next screen location
+		cmp di, 12000 						; has the whole screen cleared
+		jne nextchar1 
+mov ah, 0               ; Set up to read a keypress.
+int 16h                 ; Call BIOS interrupt 16h (keyboard input).
+pop si
+pop es
+pop ax
+ret
+
+ESC_SCSREEN:
+pusha 
+
+mov ax, 0xb800
+mov es, ax
+
+mov di, 0					; point di to top left column
+
+nextloc1:	mov word [es:di], 0xff20	; clear next char on screen
+			add di, 2					; move to next screen location
+			cmp di, 264*45; has the whole screen cleared
+			jne nextloc1				; if no clear next position
+
+
+
+  
+	
+
+mov si, 264*15+100					; point di to top left column
+mov word[es:si], 0x8f45
+add si,2;
+mov word[es:si], 0x8f58
+
+add si,2;
+mov word[es:si], 0x8f49
+add si,2;
+mov word[es:si], 0x8f54
+add si,2;
+mov word[es:si], 0x0f20
+add si,2;
+mov word[es:si], 0x8f3f
+
+    
+	
+add si,264*3-4-8
+
+mov word[es:si], 0x0f59
+add si,2;
+mov word[es:si], 0x0f45
+add si,2;
+mov word[es:si], 0x0f53
+
+add si,8
+mov word[es:si], 0x0f4e
+add si,2;
+mov word[es:si], 0x0f4f
+mov cx,18
+ESCL:
+call Delay 
+call Delay
+loop ESCL;
+call Delay 
+
+
+popa
+ret
+
+
+store_buffer:
+push    bp
+mov     bp, sp
+push    ax
+push    cx
+push    si
+push    di
+push    es
+push    ds
+
+mov     ax, 0xb800  ; points to video memory
+mov     ds, ax
+mov     si, 0
+mov     ax, cs
+mov     es, ax
+mov     di, buffer
+mov     cx, 8000
+
+cld
+rep     movsw    ; move data from video memory to buffer
+
+pop     ds
+pop     es
+pop     di
+pop     si
+pop     cx
+pop     ax
+pop     bp
+ret
+
+load_buffer:
+push    bp
+mov     bp, sp
+push    ax
+push    cx
+push    si
+push    di
+push    es
+push    ds
+
+mov     ax, 0xb800      ; points to video memory
+mov     es, ax
+mov     di, 0
+; points to buffer
+mov     ax, cs
+mov     ds, ax
+mov     si, buffer
+mov     cx, 8000
+
+cld
+
+rep     movsw       ; load buffer in video memory
+
+pop     ds
+pop     es
+pop     di
+pop     si
+pop     cx
+pop     ax
+pop     bp
+ret
+
+
+
+
+; keyboard interrupt service routine
+kbisr:		push ax
+			push es
+
+			mov ax, 0xb800
+			mov es, ax									; point es to video memory
+
+			in al, 0x60            ; Read a char from the keyboard port.
+            cmp al, 0x2a          ; Check if the key pressed is he space key.
+			jne nextcmp									; no, try next comparison
+            call store_buffer
+            call ESC_SCSREEN
+			          
+			jmp nomatch									; leave interrupt routine
+
+nextcmp:	cmp al, 0x31								; is the key right shift
+            jne nextcmp1
+												; no, leave interrupt routine
+			;call clrscr1
+			call load_buffer
+            jmp nomatch
+nextcmp1:   cmp al, 0x19								
+            jne nomatch								; no, leave interrupt routine
+			call clrscr1   
+            jmp nomatch			
+			
+		
+nomatch:	; mov al, 0x20
+			; out 0x20, al
+			pop es
+			pop ax
+			jmp far [cs:oldisr] ; call the original ISR
+			; iret
+
+
+ 
+
+;-------------
+start:
+mov AH,0x00
+mov al, 0x54
+int 0x10
+
+
+xor ax, ax
+			mov es, ax ; point es to IVT base
+
+			mov ax, [es:9*4]
+			mov [oldisr], ax ; save offset of old routine
+			mov ax, [es:9*4+2]
+			mov [oldisr+2], ax ; save segment of old routine
+
+			cli ; disable interrupts
+			mov word [es:9*4], kbisr ; store offset at n*4
+			mov [es:9*4+2], cs ; store segment at n*4+2
+			mov word [es:8*4], timer ; store offset at n*4
+			mov [es:8*4+2], cs ; store segment at n*4+
+			sti ; enable interrupts
+
+start1:
+
+  
+call IntroScreen
+     
+
+
+call Print1
+call GAME
+
+
+
+
+	        mov ax, [oldisr]								; read old offset in ax
+			mov bx, [oldisr+2]								; read old segment in bx
+			
+			cli												; disable interrupts
+			mov [es:9*4], ax								; restore old offset from ax
+			mov [es:9*4+2], bx								; restore old segment from bx
+			sti
