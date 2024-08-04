@@ -1,5 +1,5 @@
 # Rabbit-Jump-
-A simple Rabbit Jump Game in Assembly
+An interactive Rabbit Jump Game in Assembly
 
 Rabbit Jumping Game in x86 Assembly Language
 Welcome to the Rabbit Jumping Game, an exciting adventure in assembly language (x86) that challenges your reflexes and agility. 
